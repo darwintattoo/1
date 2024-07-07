@@ -5,12 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Darwin Prueba de Stencil Paso a Paso</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
         h1, h2 { text-align: center; }
-        .canvas-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-        canvas { border: 1px solid #ddd; max-width: 100%; height: auto; }
-        .controls { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
-        .control { margin: 10px 0; width: 100%; max-width: 300px; }
+        .canvas-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .canvas-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .canvas-item canvas {
+            width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+        }
+        .canvas-item h2 {
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        #final-container {
+            width: 100%;
+        }
+        #final {
+            width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .control {
+            margin: 10px 0;
+            width: 100%;
+            max-width: 300px;
+        }
         label { display: block; margin-bottom: 5px; }
         input[type="range"] { width: 100%; }
     </style>
@@ -19,30 +59,30 @@
     <h1>Darwin Prueba de Stencil Paso a Paso</h1>
     <input type="file" id="imageLoader" accept="image/*">
     <div class="canvas-container">
-        <div>
+        <div class="canvas-item">
             <h2>Original</h2>
             <canvas id="original"></canvas>
         </div>
-        <div>
+        <div class="canvas-item">
             <h2>Blanco y Negro</h2>
             <canvas id="bw"></canvas>
         </div>
-        <div>
+        <div class="canvas-item">
             <h2>Capa Superior Invertida</h2>
             <canvas id="inverted"></canvas>
         </div>
-        <div>
+        <div class="canvas-item">
             <h2>Color Dodge</h2>
             <canvas id="colorDodge"></canvas>
         </div>
-        <div>
+        <div class="canvas-item">
             <h2>Desenfoque Gaussiano</h2>
             <canvas id="blur"></canvas>
         </div>
-        <div>
-            <h2>Resultado Final</h2>
-            <canvas id="final"></canvas>
-        </div>
+    </div>
+    <div id="final-container">
+        <h2>Resultado Final</h2>
+        <canvas id="final"></canvas>
     </div>
     <div class="controls">
         <div class="control">
@@ -52,6 +92,10 @@
         <div class="control">
             <label for="levels">Ajuste de niveles (oscuros): <span id="levelsValue">220</span></label>
             <input type="range" id="levels" min="0" max="255" value="220">
+        </div>
+        <div class="control">
+            <label for="brightness">Brillo: <span id="brightnessValue">0</span></label>
+            <input type="range" id="brightness" min="-100" max="100" value="0">
         </div>
     </div>
     <script>
@@ -70,12 +114,15 @@
         const blurRadiusValue = document.getElementById('blurRadiusValue');
         const levelsSlider = document.getElementById('levels');
         const levelsValue = document.getElementById('levelsValue');
+        const brightnessSlider = document.getElementById('brightness');
+        const brightnessValue = document.getElementById('brightnessValue');
 
         let originalImage;
 
         imageLoader.addEventListener('change', handleImage, false);
         blurRadiusSlider.addEventListener('input', updateEffect);
         levelsSlider.addEventListener('input', updateEffect);
+        brightnessSlider.addEventListener('input', updateEffect);
 
         function handleImage(e) {
             const reader = new FileReader();
@@ -123,9 +170,11 @@
 
             const blurRadius = parseFloat(blurRadiusSlider.value);
             const levelsValue = parseInt(levelsSlider.value);
+            const brightnessValue = parseInt(brightnessSlider.value);
 
             blurRadiusValue.textContent = blurRadius.toFixed(1);
             document.getElementById('levelsValue').textContent = levelsValue;
+            document.getElementById('brightnessValue').textContent = brightnessValue;
 
             // Paso 1: Imagen original ya está en el canvas 'original'
 
@@ -145,8 +194,8 @@
             const blurredImageData = applyGaussianBlur(new ImageData(new Uint8ClampedArray(bwImageData.data), bwImageData.width, bwImageData.height), blurRadius);
             ctxs.blur.putImageData(blurredImageData, 0, 0);
 
-            // Paso 6: Ajuste final de niveles
-            const finalImageData = adjustLevels(applyColorDodgeBlendMode(blurredImageData, invertedImageData), levelsValue);
+            // Paso 6: Ajuste final de niveles y brillo
+            const finalImageData = adjustLevelsAndBrightness(applyColorDodgeBlendMode(blurredImageData, invertedImageData), levelsValue, brightnessValue);
             ctxs.final.putImageData(finalImageData, 0, 0);
         }
 
@@ -234,11 +283,16 @@
             return kernel;
         }
 
-        function adjustLevels(imageData, shadowLevel) {
+        function adjustLevelsAndBrightness(imageData, shadowLevel, brightness) {
             const data = imageData.data;
             for (let i = 0; i < data.length; i += 4) {
                 for (let j = 0; j < 3; j++) {
-                    data[i + j] = Math.max(0, Math.min(255, (data[i + j] - shadowLevel) * 255 / (255 - shadowLevel)));
+                    // Ajuste de niveles
+                    let value = Math.max(0, Math.min(255, (data[i + j] - shadowLevel) * 255 / (255 - shadowLevel)));
+                    
+                    // Ajuste de brillo
+                    value += brightness;
+                    data[i + j] = Math.max(0, Math.min(255, value));
                 }
             }
             return imageData;
