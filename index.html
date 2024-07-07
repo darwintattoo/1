@@ -53,10 +53,6 @@
             <label for="levels">Ajuste de niveles (oscuros): <span id="levelsValue">220</span></label>
             <input type="range" id="levels" min="0" max="255" value="220">
         </div>
-        <div class="control">
-            <label for="brightness">Brillo: <span id="brightnessValue">0</span></label>
-            <input type="range" id="brightness" min="-100" max="100" value="0">
-        </div>
     </div>
     <script>
         const canvases = {
@@ -74,15 +70,12 @@
         const blurRadiusValue = document.getElementById('blurRadiusValue');
         const levelsSlider = document.getElementById('levels');
         const levelsValue = document.getElementById('levelsValue');
-        const brightnessSlider = document.getElementById('brightness');
-        const brightnessValue = document.getElementById('brightnessValue');
 
         let originalImage;
 
         imageLoader.addEventListener('change', handleImage, false);
         blurRadiusSlider.addEventListener('input', updateEffect);
         levelsSlider.addEventListener('input', updateEffect);
-        brightnessSlider.addEventListener('input', updateEffect);
 
         function handleImage(e) {
             const reader = new FileReader();
@@ -130,11 +123,9 @@
 
             const blurRadius = parseFloat(blurRadiusSlider.value);
             const levelsValue = parseInt(levelsSlider.value);
-            const brightnessValue = parseInt(brightnessSlider.value);
 
             blurRadiusValue.textContent = blurRadius.toFixed(1);
             document.getElementById('levelsValue').textContent = levelsValue;
-            document.getElementById('brightnessValue').textContent = brightnessValue;
 
             // Paso 1: Imagen original ya está en el canvas 'original'
 
@@ -154,8 +145,8 @@
             const blurredImageData = applyGaussianBlur(new ImageData(new Uint8ClampedArray(bwImageData.data), bwImageData.width, bwImageData.height), blurRadius);
             ctxs.blur.putImageData(blurredImageData, 0, 0);
 
-            // Paso 6: Ajuste final de niveles y brillo
-            const finalImageData = adjustLevelsAndBrightness(applyColorDodgeBlendMode(blurredImageData, invertedImageData), levelsValue, brightnessValue);
+            // Paso 6: Ajuste final de niveles
+            const finalImageData = adjustLevels(applyColorDodgeBlendMode(blurredImageData, invertedImageData), levelsValue);
             ctxs.final.putImageData(finalImageData, 0, 0);
         }
 
@@ -243,16 +234,11 @@
             return kernel;
         }
 
-        function adjustLevelsAndBrightness(imageData, shadowLevel, brightness) {
+        function adjustLevels(imageData, shadowLevel) {
             const data = imageData.data;
             for (let i = 0; i < data.length; i += 4) {
                 for (let j = 0; j < 3; j++) {
-                    // Ajuste de niveles
-                    let value = Math.max(0, Math.min(255, (data[i + j] - shadowLevel) * 255 / (255 - shadowLevel)));
-                    
-                    // Ajuste de brillo
-                    value += brightness;
-                    data[i + j] = Math.max(0, Math.min(255, value));
+                    data[i + j] = Math.max(0, Math.min(255, (data[i + j] - shadowLevel) * 255 / (255 - shadowLevel)));
                 }
             }
             return imageData;
