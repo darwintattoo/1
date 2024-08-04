@@ -1,0 +1,732 @@
+<html><head><base href="https://websim.io/stencil-creator/%20esta%20muy%20bien%20,%20%20la%20opcion%20de%20add%20layer%20debe%20verse%20a%20le%20inicion%20encima%20del%20cuadro%20de%20la%20imagen%20tambien">
+<title>Stencil Creator Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+  
+  :root {
+    --primary-color: #007AFF;
+    --secondary-color: #00C805;
+    --background-color: #1E1E1E;
+    --text-color: #F0F0F0;
+    --panel-color: #2A2A2A;
+    --slider-color: #4A4A4A;
+    --layer-bg: #3A3A3A;
+    --layer-active: #4E4E4E;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-size: 16px;
+  }
+
+  .app-container {
+    background-color: var(--panel-color);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    padding: 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  h1 {
+    text-align: center;
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 1.8em;
+    margin-bottom: 5px;
+  }
+
+  .author {
+    text-align: center;
+    color: var(--secondary-color);
+    font-size: 0.8em;
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .canvas-container {
+    flex: 1;
+    height: 0;
+    padding-bottom: 56.25%;
+    position: relative;
+    border: 2px solid var(--primary-color);
+    border-radius: 15px;
+    overflow: hidden;
+    background-color: #000;
+  }
+
+  #imageCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .controls-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .control-icon {
+    width: 40px;
+    height: 40px;
+    background-color: var(--panel-color);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .control-icon:hover {
+    background-color: var(--layer-active);
+  }
+
+  .control-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--text-color);
+  }
+
+  .side-panel {
+    position: absolute;
+    top: 70px;
+    right: 20px;
+    width: 300px;
+    background-color: var(--panel-color);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    display: none;
+    max-height: calc(100% - 100px);
+    overflow-y: auto;
+  }
+
+  .side-panel.active {
+    display: block;
+  }
+
+  .control-group {
+    margin-bottom: 20px;
+  }
+
+  .control-group h3 {
+    margin-top: 0;
+    color: var(--primary-color);
+  }
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
+  .slider-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .slider-container input[type="range"] {
+    flex-grow: 1;
+    margin-right: 10px;
+  }
+
+  .slider-value {
+    min-width: 40px;
+    text-align: right;
+    font-weight: bold;
+    color: var(--primary-color);
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--slider-color);
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  input[type="checkbox"] {
+    margin-right: 10px;
+    width: 18px;
+    height: 18px;
+  }
+
+  select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: var(--slider-color);
+    color: var(--text-color);
+    border: none;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .layers-panel {
+    margin-top: 20px;
+  }
+
+  .layer {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--layer-bg);
+    border-radius: 5px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .layer:hover {
+    background-color: var(--layer-active);
+  }
+
+  .layer.active {
+    background-color: var(--layer-active);
+  }
+
+  .layer-visibility {
+    margin-right: 10px;
+  }
+
+  .layer-name {
+    flex-grow: 1;
+  }
+
+  .layer-controls {
+    display: flex;
+    gap: 5px;
+  }
+
+  .layer-control-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0 5px;
+  }
+
+  .layer-opacity {
+    width: 60px;
+    margin-right: 10px;
+  }
+
+  .mask-controls {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+  }
+
+  .mask-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-right: 10px;
+  }
+
+  .button-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  button {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+  }
+
+  button:active {
+    transform: scale(0.98);
+  }
+
+  #saveButton {
+    background-color: var(--secondary-color);
+  }
+
+  #addLayerButton {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .app-container {
+      padding: 10px;
+    }
+
+    .controls-container {
+      top: 10px;
+      right: 10px;
+    }
+
+    .side-panel {
+      top: 60px;
+      right: 10px;
+      width: calc(100% - 20px);
+    }
+
+    #addLayerButton {
+      top: 5px;
+      left: 5px;
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="app-container">
+    <h1>Stencil Creator Pro</h1>
+    <p class="author">by Darwin Enriquez</p>
+    
+    <div class="main-content">
+      <div class="canvas-container">
+        <canvas id="imageCanvas"></canvas>
+        <button id="addLayerButton">Add Layer</button>
+      </div>
+    </div>
+    
+    <div class="controls-container">
+      <div class="control-icon" id="adjustmentsIcon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
+      </div>
+      <div class="control-icon" id="layersIcon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16zm0-11.47L17.74 9 12 13.47 6.26 9 12 4.53z"/></svg>
+      </div>
+    </div>
+    
+    <div class="side-panel" id="adjustmentsPanel">
+      <div class="control-group">
+        <h3>Edge Detection</h3>
+        <label for="algorithm">Algorithm</label>
+        <select id="algorithm">
+          <option value="canny">Canny</option>
+          <option value="dog">Difference of Gaussians (DoG)</option>
+        </select>
+        
+        <div id="cannyControls">
+          <label for="cannyLowThreshold">Low Threshold</label>
+          <div class="slider-container">
+            <input type="range" id="cannyLowThreshold" min="0" max="255" value="100">
+            <span class="slider-value" id="cannyLowThresholdValue">100</span>
+          </div>
+          <label for="cannyHighThreshold">High Threshold</label>
+          <div class="slider-container">
+            <input type="range" id="cannyHighThreshold" min="0" max="255" value="200">
+            <span class="slider-value" id="cannyHighThresholdValue">200</span>
+          </div>
+        </div>
+        
+        <div id="dogControls" style="display:none;">
+          <label for="dogSigma1">Sigma 1</label>
+          <div class="slider-container">
+            <input type="range" id="dogSigma1" min="0.1" max="5" step="0.1" value="1.0">
+            <span class="slider-value" id="dogSigma1Value">1.0</span>
+          </div>
+          <label for="dogSigma2">Sigma 2</label>
+          <div class="slider-container">
+            <input type="range" id="dogSigma2" min="0.1" max="5" step="0.1" value="2.0">
+            <span class="slider-value" id="dogSigma2Value">2.0</span>
+          </div>
+          <label for="dogThreshold">Threshold</label>
+          <div class="slider-container">
+            <input type="range" id="dogThreshold" min="0" max="20" value="10">
+            <span class="slider-value" id="dogThresholdValue">10</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h3>Image Processing</h3>
+        <label for="blurSize">Blur Size</label>
+        <div class="slider-container">
+          <input type="range" id="blurSize" min="1" max="21" step="2" value="5">
+          <span class="slider-value" id="blurSizeValue">5</span>
+        </div>
+        <label for="dilationSize">Dilation Size</label>
+        <div class="slider-container">
+          <input type="range" id="dilationSize" min="0" max="10" value="0">
+          <span class="slider-value" id="dilationSizeValue">0</span>
+        </div>
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="invertCheckbox" checked>
+          <label for="invertCheckbox">Invert</label>
+        </div>
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="sharpenCheckbox" checked>
+          <label for="sharpenCheckbox">Apply Sharpen Filter</label>
+        </div>
+      </div>
+    </div>
+    
+    <div class="side-panel" id="layersPanel">
+      <h3>Layers</h3>
+      <div id="layersContainer"></div>
+      <div class="button-container">
+        <button id="saveButton">Save Stencil</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/opencv.js/4.5.2/opencv.js"></script>
+  <script>
+    let layers = [];
+    let activeLayerIndex = -1;
+    const canvas = document.getElementById('imageCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function Layer(name, image, algorithm) {
+      this.name = name;
+      this.image = image;
+      this.algorithm = algorithm;
+      this.visible = true;
+      this.opacity = 1;
+      this.mask = null;
+      this.processedImage = null;
+    }
+
+    function loadImage() {
+      return new Promise((resolve) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.removeAttribute('capture');
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+              resolve(img);
+            };
+            img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        };
+        input.click();
+      });
+    }
+
+    function addLayer() {
+      loadImage().then(img => {
+        const originalLayer = new Layer("Original", img, "original");
+        layers.unshift(originalLayer);
+
+        const algorithms = ["canny", "dog"];
+        algorithms.forEach(algo => {
+          const algoLayer = new Layer(`${algo.charAt(0).toUpperCase() + algo.slice(1)} Layer`, img, algo);
+          layers.push(algoLayer);
+        });
+
+        activeLayerIndex = 0;
+        updateLayersPanel();
+        processAllLayers();
+      });
+    }
+
+    function updateLayersPanel() {
+      const layersContainer = document.getElementById('layersContainer');
+      layersContainer.innerHTML = '';
+      layers.forEach((layer, index) => {
+        const layerElement = document.createElement('div');
+        layerElement.className = `layer ${index === activeLayerIndex ? 'active' : ''}`;
+        layerElement.innerHTML = `
+          <input type="checkbox" class="layer-visibility" ${layer.visible ? 'checked' : ''}>
+          <span class="layer-name">${layer.name}</span>
+          <input type="range" class="layer-opacity" min="0" max="100" value="${layer.opacity * 100}">
+          <div class="layer-controls">
+            <button class="layer-control-btn layer-up">▲</button>
+            <button class="layer-control-btn layer-down">▼</button>
+            <button class="layer-control-btn layer-delete">×</button>
+          </div>
+          <div class="mask-controls">
+            <button class="mask-btn add-mask">Add Mask</button>
+            <button class="mask-btn remove-mask" style="display: ${layer.mask ? 'inline-block' : 'none'};">Remove Mask</button>
+          </div>
+        `;
+        layerElement.querySelector('.layer-visibility').addEventListener('change', (e) => {
+          layer.visible = e.target.checked;
+          updateCanvas();
+        });
+        layerElement.querySelector('.layer-name').addEventListener('click', () => {
+          activeLayerIndex = index;
+          updateLayersPanel();
+          updateCanvas();
+        });
+        layerElement.querySelector('.layer-opacity').addEventListener('input', (e) => {
+          layer.opacity = e.target.value / 100;
+          updateCanvas();
+        });
+        layerElement.querySelector('.layer-up').addEventListener('click', () => {
+          if (index > 0) {
+            [layers[index - 1], layers[index]] = [layers[index], layers[index - 1]];
+            updateLayersPanel();
+            updateCanvas();
+          }
+        });
+        layerElement.querySelector('.layer-down').addEventListener('click', () => {
+          if (index < layers.length - 1) {
+            [layers[index], layers[index + 1]] = [layers[index + 1], layers[index]];
+            updateLayersPanel();
+            updateCanvas();
+          }
+        });
+        layerElement.querySelector('.layer-delete').addEventListener('click', () => {
+          layers.splice(index, 1);
+          if (activeLayerIndex >= layers.length) {
+            activeLayerIndex = layers.length - 1;
+          }
+          updateLayersPanel();
+          updateCanvas();
+        });
+        layerElement.querySelector('.add-mask').addEventListener('click', () => {
+          loadImage().then(maskImg => {
+            layer.mask = maskImg;
+            updateLayersPanel();
+            processLayer(layer);
+            updateCanvas();
+          });
+        });
+        layerElement.querySelector('.remove-mask').addEventListener('click', () => {
+          layer.mask = null;
+          updateLayersPanel();
+          processLayer(layer);
+          updateCanvas();
+        });
+        layersContainer.appendChild(layerElement);
+      });
+    }
+
+    function processAllLayers() {
+      layers.forEach(layer => {
+        if (layer.algorithm !== 'original') {
+          processLayer(layer);
+        }
+      });
+      updateCanvas();
+    }
+
+    function processLayer(layer) {
+      if (layer.algorithm === 'original') return;
+
+      let src = cv.imread(layer.image);
+      let dst = new cv.Mat();
+      let edges = new cv.Mat();
+
+      const blurSize = parseInt(document.getElementById('blurSize').value);
+      const dilationSize = parseInt(document.getElementById('dilationSize').value);
+      const invert = document.getElementById('invertCheckbox').checked;
+      const applySharpen = document.getElementById('sharpenCheckbox').checked;
+
+      cv.GaussianBlur(src, src, new cv.Size(blurSize, blurSize), 0, 0, cv.BORDER_DEFAULT);
+
+      if (applySharpen) {
+        let sharpenKernel = new cv.Mat(3, 3, cv.CV_32F);
+        sharpenKernel.data32F.set([0, -1, 0, -1, 5, -1, 0, -1, 0]);
+        cv.filter2D(src, src, -1, sharpenKernel);
+        sharpenKernel.delete();
+      }
+      
+      if (layer.algorithm === 'canny') {
+        const lowThreshold = parseInt(document.getElementById('cannyLowThreshold').value);
+        const highThreshold = parseInt(document.getElementById('cannyHighThreshold').value);
+        cv.Canny(src, edges, lowThreshold, highThreshold, 3, false);
+      } else if (layer.algorithm === 'dog') {
+        const sigma1 = parseFloat(document.getElementById('dogSigma1').value);
+        const sigma2 = parseFloat(document.getElementById('dogSigma2').value);
+        const threshold = parseInt(document.getElementById('dogThreshold').value);
+        
+        let gray = new cv.Mat();
+        cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+        
+        let blur1 = new cv.Mat();
+        let blur2 = new cv.Mat();
+        
+        cv.GaussianBlur(gray, blur1, new cv.Size(0, 0), sigma1, sigma1, cv.BORDER_DEFAULT);
+        cv.GaussianBlur(gray, blur2, new cv.Size(0, 0), sigma2, sigma2, cv.BORDER_DEFAULT);
+        
+        cv.subtract(blur1, blur2, edges);
+        cv.threshold(edges, edges, threshold, 255, cv.THRESH_BINARY);
+        
+        gray.delete(); blur1.delete(); blur2.delete();
+      }
+
+      if (dilationSize > 0) {
+        let M = cv.Mat.ones(dilationSize, dilationSize, cv.CV_8U);
+        cv.dilate(edges, edges, M, new cv.Point(-1, -1), 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+        M.delete();
+      }
+
+      if (invert) {
+        cv.bitwise_not(edges, edges);
+      }
+
+      cv.cvtColor(edges, dst, cv.COLOR_GRAY2RGBA);
+      
+      const tempCanvas = document.createElement('canvas');
+      cv.imshow(tempCanvas, dst);
+      layer.processedImage = tempCanvas;
+
+      src.delete();
+      dst.delete();
+      edges.delete();
+    }
+
+    function updateCanvas() {
+      if (layers.length === 0) return;
+
+      canvas.width = layers[0].image.width;
+      canvas.height = layers[0].image.height;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = layers.length - 1; i >= 0; i--) {
+        const layer = layers[i];
+        if (layer.visible) {
+          ctx.globalAlpha = layer.opacity;
+          if (layer.mask) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(layer.algorithm === 'original' ? layer.image : layer.processedImage, 0, 0, canvas.width, canvas.height);
+            tempCtx.globalCompositeOperation = 'destination-in';
+            tempCtx.drawImage(layer.mask, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(tempCanvas, 0, 0);
+          } else {
+            ctx.drawImage(layer.algorithm === 'original' ? layer.image : layer.processedImage, 0, 0, canvas.width, canvas.height);
+          }
+        }
+      }
+    }
+
+    function saveImage() {
+      const dataURL = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'stencil.png';
+      link.href = dataURL;
+      link.click();
+    }
+
+    document.getElementById('addLayerButton').addEventListener('click', addLayer);
+    document.getElementById('saveButton').addEventListener('click', saveImage);
+
+    document.getElementById('algorithm').addEventListener('change', (e) => {
+      document.querySelectorAll('#cannyControls, #dogControls').forEach(el => el.style.display = 'none');
+      document.getElementById(`${e.target.value}Controls`).style.display = 'block';
+      processAllLayers();
+    });
+
+    function updateSliderValue(sliderId, valueId) {
+      const slider = document.getElementById(sliderId);
+      const valueSpan = document.getElementById(valueId);
+      valueSpan.textContent = slider.value;
+      slider.addEventListener('input', () => {
+        valueSpan.textContent = slider.value;
+        processAllLayers();
+      });
+    }
+
+    updateSliderValue('cannyLowThreshold', 'cannyLowThresholdValue');
+    updateSliderValue('cannyHighThreshold', 'cannyHighThresholdValue');
+    updateSliderValue('dogSigma1', 'dogSigma1Value');
+    updateSliderValue('dogSigma2', 'dogSigma2Value');
+    updateSliderValue('dogThreshold', 'dogThresholdValue');
+    updateSliderValue('blurSize', 'blurSizeValue');
+    updateSliderValue('dilationSize', 'dilationSizeValue');
+
+    document.getElementById('invertCheckbox').addEventListener('change', processAllLayers);
+    document.getElementById('sharpenCheckbox').addEventListener('change', processAllLayers);
+
+    const adjustmentsIcon = document.getElementById('adjustmentsIcon');
+    const layersIcon = document.getElementById('layersIcon');
+    const adjustmentsPanel = document.getElementById('adjustmentsPanel');
+    const layersPanel = document.getElementById('layersPanel');
+
+    adjustmentsIcon.addEventListener('click', () => {
+      adjustmentsPanel.classList.toggle('active');
+      layersPanel.classList.remove('active');
+    });
+
+    layersIcon.addEventListener('click', () => {
+      layersPanel.classList.toggle('active');
+      adjustmentsPanel.classList.remove('active');
+    });
+
+    function onOpenCvReady() {
+      cv['onRuntimeInitialized'] = () => {
+        console.log('OpenCV.js is ready');
+      };
+    }
+  </script>
+  <script async src="https://docs.opencv.org/4.5.2/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</body>
+</html>
